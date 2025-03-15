@@ -33,26 +33,6 @@ bool compareByAge(const Person& person1, const Person& person2) {
     return person1.age < person2.age;
 }
 
-struct CompareByJob {
-    std::unique_ptr<std::map<int, Job>> jobsMap;
-    std::unique_ptr<std::map<int, Position>> positionsMap;
-
-    CompareByJob(const std::map<int, Job>& aJobs, const std::map<int, Position> aPositions) {
-        jobsMap = std::make_unique<std::map<int, Job>>(aJobs);
-        positionsMap = std::make_unique<std::map<int, Position>>(aPositions);
-    }
-
-    bool operator()(const Person& person1, const Person& person2) {
-        if ((*jobsMap)[person1.job_id].name == (*jobsMap)[person2.job_id].name) {
-            if ((*positionsMap)[person1.position_id].name == (*positionsMap)[person2.position_id].name) {
-                return compareByName(person1, person2);
-            }
-            return (*positionsMap)[person1.position_id].name < (*positionsMap)[person2.position_id].name;
-        }
-        return (*jobsMap)[person1.job_id].name < (*jobsMap)[person2.job_id].name;
-    }
-};
-
 class PersonsList {
 private:
     std::vector<Person> persons;
@@ -85,7 +65,16 @@ public:
         std::stable_sort(persons.begin(), persons.end(), compareByAge);
     }
     void sortByJob() {
-        std::stable_sort(persons.begin(), persons.end(), CompareByJob{ jobsMap,positionsMap });
+        std::stable_sort(persons.begin(), persons.end(), [=](const Person& person1, const Person& person2) {
+            if (jobsMap[person1.job_id].name == jobsMap[person2.job_id].name) {
+                if (positionsMap[person1.position_id].name == positionsMap[person2.position_id].name) {
+                    return compareByName(person1, person2);
+                }
+                return positionsMap[person1.position_id].name < positionsMap[person2.position_id].name;
+            }
+            return jobsMap[person1.job_id].name < jobsMap[person2.job_id].name;
+            }
+        );
     }
 };
 
